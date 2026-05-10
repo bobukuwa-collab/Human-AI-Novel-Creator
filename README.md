@@ -1,15 +1,154 @@
 # Human × AI Novel Creator
 
-AIと交互に文章を書いて小説を共作し、完成後に執筆の癖・思考の癖を「人格占い」としてAIが分析するWebアプリ。
+> AIと交互に物語を紡ぎ、あなたの「書く魂」を解剖する。
+
+人間とAIが一文ずつ交互に小説を書き上げ、完成後にあなたが書いた文章の傾向・語彙・感情表現などから性格を診断するWebアプリ。書き手としての無意識が、物語に滲み出る。
 
 **本番環境**: https://collaborative-novel-3ufiuwpvrq-an.a.run.app
 
-## 機能
+---
 
-- **交互執筆**: あなた→AI→あなた…とターン制で物語を紡ぐ
-- **人格占い**: 完成後、あなたが書いた文章からサイコパス度・共感力・想像力・闇度などを分析
-- **ジャンル選択**: 10ジャンルから物語のテーマを選択
-- **ライブラリ**: 完成した作品を公開・いいね・閲覧
+## プロダクトコンセプト
+
+### コアループ
+
+```
+ジャンル選択 → ターン数選択 → 人間 ↔ AI 交互執筆
+→ 完結 → 性格診断（5軸スコア + 作家タイプ名）
+→ 好きな作家アンケート → ライブラリに公開
+```
+
+### ターゲットユーザー
+
+小説を書くこと・読むことが好きな人。文学に触れたい人。言葉を大切にする人。年齢層は問わない。
+
+### トーン
+
+シンプルかつ知的。学術的な香りを持たせる。直接的な言葉を使い、遠回しな表現は避ける。
+
+---
+
+## ユーザーフロー
+
+### 1. ジャンル選択
+10ジャンルから選択。選んだジャンルは診断データの一部として扱われる。
+
+| ジャンル | ジャンル |
+|---------|---------|
+| 愛と恋 | 孤独と静寂 |
+| 哲学と人生 | ダークファンタジー |
+| ホラー | SF・宇宙 |
+| 日常と記憶 | 友情と裏切り |
+| ユーモア | ランダム |
+
+### 2. ターン数選択
+
+| ターン数 | 人間の執筆回数 | 診断精度 |
+|---------|-------------|---------|
+| 20ターン | 10回 | 標準 |
+| 30ターン | 15回 | 高精度 |
+| 50ターン | 25回 | 最高精度 |
+
+ターン数が多いほど診断に使えるデータが増え、精度が向上する旨をUIで説明する。
+
+### 3. 交互執筆
+人間 → AI → 人間 … の順でターン制執筆。AIはジャンルと前の文脈を踏まえて続きを生成する。
+
+### 4. 完結・性格診断
+「完結して占う」ボタンで診断開始。人間が書いた文章のみを分析対象とする。
+
+### 5. 著名作家アンケート
+診断結果確認後、ホームに戻る前に表示。診断結果には影響しない（Phase 1）。
+
+### 6. ライブラリ公開
+完成した小説はライブラリに公開される。他ユーザーの作品も閲覧・いいね可能。
+
+---
+
+## 診断システム
+
+### 5軸スコア（0〜100）
+
+| 軸名 | 内容 | 文章から何を測るか |
+|------|------|-----------------|
+| **サイコパス度** | 感情の欠如・他者を道具として扱う傾向 | 感情語の少なさ・他者の感情描写の希薄さ |
+| **策士度** | 計算・謀略・伏線への傾倒 | 裏切り・計略・不信描写の精緻さと頻度 |
+| **自己愛度** | 自己中心性・承認欲求の強さ | 主人公の美化・一人称の多用・称賛シーンの量 |
+| **共感力** | 他者の感情への敏感さ | 感情語の豊富さ・他者の心情描写の細かさ |
+| **語彙知性** | 語彙の多様さ・文章構造の洗練度 | 使用語彙の幅・文の複雑さ・表現の独自性 |
+
+### 作家タイプ名
+5軸の組み合わせから、書き手の人格を象徴するタイプ名を出力する。（例：「冷血な建築家」「魂の代弁者」「舞台裏の支配者」）
+
+### 選んだジャンルの反映
+ジャンル選択は診断データの一部として扱われ、最終的な分析文に反映される。
+
+---
+
+## 著名作家アンケート（Phase 1 / Phase 2）
+
+### Phase 1（現在）
+- 診断結果確認後にアンケートとして表示
+- 「あなたが好きな作家は誰ですか？」
+- ジャンル別にフィルタリングできるオートコンプリート入力
+- 「なし・回答しない」を常に選択肢として用意
+- 入力された作家名はデータ収集のみに使用。診断結果には影響しない
+- 目的：ユーザーの作家嗜好データの蓄積
+
+### Phase 2（将来実装）
+- 蓄積された「好きな作家 × 書き方の傾向」データを分析
+- 各作家の文体的特徴データベースを構築
+- 診断結果に「あなたの文体は〇〇（作家名）に近い傾向があります」を反映
+- 実装条件：一定数以上のデータが蓄積された時点で着手
+
+詳細な作家リスト（ジャンル別）は [`docs/AUTHOR_LIST.md`](docs/AUTHOR_LIST.md) を参照。
+
+---
+
+## 機能実装状況
+
+### 実装済み ✅
+
+| 機能 | 状態 |
+|------|------|
+| Google OAuth ログイン | ✅ |
+| ジャンル選択 | ✅ |
+| ターン数選択（20/30/50） | ✅ |
+| 人間 ↔ AI 交互執筆 | ✅ |
+| リアルタイム更新（Supabase Realtime） | ✅ |
+| 性格診断（5軸スコア） | ✅ |
+| 完成小説のライブラリ公開 | ✅ |
+| いいね機能 | ✅ |
+| Cloud Run デプロイ | ✅ |
+
+### 実装予定 🔧
+
+| 機能 | 優先度 | 備考 |
+|------|--------|------|
+| 作家タイプ名の出力 | 高 | 診断結果ページに追加 |
+| ターン数と精度の説明UI | 高 | セッション開始前に表示 |
+| ジャンルを診断に反映 | 高 | AIプロンプト改修 |
+| 著名作家アンケート（Phase 1） | 中 | 診断後に表示 |
+| 著名作家オートコンプリートUI | 中 | ジャンル別フィルタリング付き |
+| 複数セッション設計 | 中 | **ペンディング（下記参照）** |
+
+---
+
+## 未決定事項（ペンディング）
+
+### 1. 複数セッション時の診断設計
+ユーザーが複数回セッションを行った場合の診断結果の扱い方。社内ミーティングで決定予定。
+
+選択肢：
+- 案1：初回セッションのみ診断対象
+- 案2：最新セッションの結果のみ表示
+- 案3：累積平均で精度向上（セッション数が増えるほど精度が上がる）
+- 案4：小説保存と診断を分離（小説は全件保存・診断は最新1件）
+
+### 2. アプリ名
+「Human × AI Novel Creator」は開発コード名。正式名称は企画書完成後に決定。
+
+---
 
 ## 技術スタック
 
@@ -20,6 +159,9 @@ AIと交互に文章を書いて小説を共作し、完成後に執筆の癖・
 | データベース / 認証 | Supabase (PostgreSQL + Auth + Realtime) |
 | AI | Google Gemini 2.0 Flash |
 | テスト | Vitest, Testing Library |
+| インフラ | Google Cloud Run, Artifact Registry, Secret Manager |
+
+---
 
 ## セットアップ
 
@@ -36,7 +178,6 @@ pnpm install
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
 GEMINI_API_KEY=AIza...
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
@@ -48,60 +189,29 @@ Supabase Dashboard の SQL Editor で以下を順番に実行:
 1. `supabase/schema.sql` — テーブル・RLS ポリシーの作成
 2. `supabase/trigger_new_user.sql` — 新規ユーザー自動作成トリガー
 
-> **開発中**: Authentication → Settings → "Enable email confirmations" を OFF にすると確認メールなしでテストできます。
+### 4. Google OAuth の設定
 
-### 4. 開発サーバーの起動
+1. Supabase Dashboard → Authentication → Providers → Google を有効化
+2. Google Cloud Console で OAuth 2.0 クライアント ID を作成
+3. リダイレクト URI に `https://xxxx.supabase.co/auth/v1/callback` を追加
 
-```bash
-# PowerShell では実行ポリシーのエラーが出る場合があるため cmd.exe を使用
-cmd /c "pnpm dev"
-```
-
-ブラウザで `http://localhost:3000` を開く。
-
-## テスト
+### 5. 開発サーバーの起動
 
 ```bash
-pnpm test              # 単体テスト実行（47件）
-pnpm test:coverage     # カバレッジレポート生成
+pnpm dev
 ```
 
-## ディレクトリ構成
-
-```
-src/
-├── app/               # Next.js App Router ページ
-│   ├── (auth)/        # ログイン・サインアップ
-│   ├── rooms/         # 執筆セッション
-│   ├── novels/        # 完成作品・人格占い結果
-│   └── library/       # 作品一覧
-├── components/
-│   ├── auth/          # LoginForm, SignupForm
-│   ├── rooms/         # WritingRoom, CreateRoomForm
-│   ├── novels/        # LibraryList, LikeButton, ContributionChart
-│   └── personality/   # PersonalityCard
-└── lib/
-    ├── ai/            # Gemini API（continue-story, analyze-personality）
-    ├── sessions/      # Server Actions（submitSentence, finishSession）
-    ├── rooms/         # Server Actions（createRoom）
-    ├── novels/        # Server Actions（toggleLike）
-    └── supabase/      # クライアント・サーバー・管理者クライアント
-supabase/
-├── schema.sql         # DB スキーマ定義
-└── trigger_new_user.sql  # 新規ユーザー自動作成トリガー
-```
+---
 
 ## デプロイ
 
 Google Cloud Run（asia-northeast1）にデプロイされています。
 
 ```powershell
-# 手動デプロイ（mainブランチから）
 $sha = git rev-parse --short HEAD
 gcloud builds submit --config cloudbuild.yaml --project=vintage-stock-dpe --substitutions "_TAG=$sha" .
 ```
 
-### インフラ構成
 | リソース | 値 |
 |---------|---|
 | Cloud Run サービス | `collaborative-novel` |
@@ -110,18 +220,28 @@ gcloud builds submit --config cloudbuild.yaml --project=vintage-stock-dpe --subs
 | GCP プロジェクト | `vintage-stock-dpe` |
 | 秘密情報 | `GEMINI_API_KEY` → Secret Manager |
 
-## 既知の制限・今後の課題
+---
 
-- [ ] Google OAuth ログイン（開発後期に追加予定）
-- [ ] レートリミット（Upstash 等の導入）
-- [ ] Supabase RLS ポリシーの監査・強化
-- [ ] DB の `sentences(session_id, seq)` UNIQUE 制約追加
+## テスト
+
+```bash
+pnpm test              # 単体テスト（47件）
+pnpm test:coverage     # カバレッジレポート
+```
+
+---
 
 ## 進捗ログ
 
 | 日付 | マイルストーン |
 |------|-------------|
-| 2026-05-03 | 認証（メール/パスワード）・DB スキーマ・Server Actions 実装完了 |
-| 2026-05-03 | Vitest 47件テスト・TypeScript 型チェック・セキュリティレビュー通過 |
+| 2026-05-03 | 認証・DB スキーマ・Server Actions・交互執筆・性格診断 実装完了 |
+| 2026-05-03 | Vitest 47件テスト・TypeScript チェック・セキュリティレビュー 通過 |
 | 2026-05-10 | GitHub リポジトリ（bobukuwa-collab/Human-AI-Novel-Creator）作成・移行 |
 | 2026-05-10 | Google Cloud Run 初回デプロイ成功・本番環境稼働開始 |
+| 2026-05-10 | 認証を Google OAuth のみに変更（メール/パスワード廃止） |
+| 2026-05-10 | 企画書ドラフト作成・診断システム設計確定 |
+
+---
+
+詳細仕様は [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) を参照。
