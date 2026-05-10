@@ -50,6 +50,7 @@ steps:
   - id: deploy
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
+    secretEnv: ['GEMINI_API_KEY']
     args:
       - 'run'
       - 'deploy'
