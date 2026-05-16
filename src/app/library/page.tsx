@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { Header } from '@/components/layout/Header'
 import { LibraryList } from '@/components/novels/LibraryList'
+import { CumulativeProfileCard } from '@/components/personality/CumulativeProfileCard'
+import { OnboardingBanner } from '@/components/personality/OnboardingBanner'
 import { redirect } from 'next/navigation'
 
 export default async function LibraryPage() {
@@ -8,11 +10,18 @@ export default async function LibraryPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: novels } = await supabase
-    .from('novels')
-    .select('id, title, published_at, room_id, rooms(genre)')
-    .eq('status', 'completed')
-    .order('published_at', { ascending: false })
+  const [{ data: novels }, { data: cumulativeProfile }] = await Promise.all([
+    supabase
+      .from('novels')
+      .select('id, title, published_at, room_id, rooms(genre)')
+      .eq('status', 'completed')
+      .order('published_at', { ascending: false }),
+    supabase
+      .from('user_cumulative_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ])
 
   // 各作品のいいね数・フレーズ数を取得
   const novelIds = (novels ?? []).map((n) => n.id)
@@ -72,6 +81,27 @@ export default async function LibraryPage() {
       <Header />
       <main className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-2xl mx-auto">
+          {/* 累積診断プロファイル */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">あなたの作家診断</h2>
+            </div>
+            {cumulativeProfile ? (
+              <CumulativeProfileCard
+                sessionCount={cumulativeProfile.session_count}
+                psychopathy_score={Number(cumulativeProfile.psychopathy_score)}
+                strategist_score={Number(cumulativeProfile.strategist_score)}
+                narcissism_score={Number(cumulativeProfile.narcissism_score)}
+                empathy_score={Number(cumulativeProfile.empathy_score)}
+                vocabulary_score={Number(cumulativeProfile.vocabulary_score)}
+                writer_type={cumulativeProfile.writer_type}
+                analysis_text={cumulativeProfile.analysis_text}
+              />
+            ) : (
+              <OnboardingBanner />
+            )}
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-xl font-bold text-gray-800">コレクション</h1>
             <a

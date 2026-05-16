@@ -1,5 +1,5 @@
 -- ============================================================
--- Human-AI Novel Creator - DB Schema
+-- Anima - DB Schema
 -- ============================================================
 
 -- ENUMタイプ
@@ -53,18 +53,32 @@ create table public.novels (
   created_at   timestamptz not null default now()
 );
 
--- personality_profiles（人格占い結果）
+-- personality_profiles（5軸診断結果）
 create table public.personality_profiles (
   id                uuid primary key default gen_random_uuid(),
   novel_id          uuid not null references public.novels(id) on delete cascade,
-  psychopathy_score int  not null default 0,
-  empathy_score     int  not null default 0,
-  imagination_score int  not null default 0,
-  darkness_score    int  not null default 0,
-  personality_type  text not null,
-  character_title   text not null,
+  psychopathy_score int  not null default 0,  -- サイコパス度
+  strategist_score  int  not null default 0,  -- 策士度
+  narcissism_score  int  not null default 0,  -- 自己愛度
+  empathy_score     int  not null default 0,  -- 共感力
+  vocabulary_score  int  not null default 0,  -- 語彙知性
+  writer_type       text not null,
   analysis_text     text not null,
   created_at        timestamptz not null default now()
+);
+
+-- user_cumulative_profiles（累積診断プロファイル）
+create table public.user_cumulative_profiles (
+  user_id           uuid    primary key references public.users(id) on delete cascade,
+  session_count     int     not null default 0,
+  psychopathy_score numeric(5,2) not null default 0,
+  strategist_score  numeric(5,2) not null default 0,
+  narcissism_score  numeric(5,2) not null default 0,
+  empathy_score     numeric(5,2) not null default 0,
+  vocabulary_score  numeric(5,2) not null default 0,
+  writer_type       text    not null default '沈黙の万華鏡',
+  analysis_text     text    not null default '',
+  updated_at        timestamptz not null default now()
 );
 
 -- likes
@@ -79,13 +93,14 @@ create table public.likes (
 -- RLS（Row Level Security）
 -- ============================================================
 
-alter table public.users             enable row level security;
-alter table public.rooms             enable row level security;
-alter table public.sessions          enable row level security;
-alter table public.sentences         enable row level security;
-alter table public.novels            enable row level security;
-alter table public.personality_profiles enable row level security;
-alter table public.likes             enable row level security;
+alter table public.users                    enable row level security;
+alter table public.rooms                    enable row level security;
+alter table public.sessions                 enable row level security;
+alter table public.sentences                enable row level security;
+alter table public.novels                   enable row level security;
+alter table public.personality_profiles     enable row level security;
+alter table public.user_cumulative_profiles enable row level security;
+alter table public.likes                    enable row level security;
 
 -- users
 create policy "users: read own" on public.users

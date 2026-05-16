@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { continueStory } from '@/lib/ai/continue-story'
 import { analyzePersonality } from '@/lib/ai/analyze-personality'
+import { upsertCumulativeProfile } from '@/lib/users/cumulative'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
@@ -122,7 +123,7 @@ export async function submitSentence(
 
   // max_turns に達したら自動完結
   if (aiTurn >= room.max_turns) {
-    await completeNovel(sessRow.room_id, sessionId, humanSentences)
+    await completeNovel(sessRow.room_id, sessionId, humanSentences, user.id)
     return { success: true }
   }
 
@@ -133,6 +134,7 @@ async function completeNovel(
   roomId: string,
   sessionId: string,
   humanSentences: string[],
+  userId?: string,
 ): Promise<{ novelId?: string; error?: string }> {
   const supabase = createClient()
 
@@ -158,8 +160,12 @@ async function completeNovel(
 
   if (humanSentences.length > 0) {
     try {
-      const profile = await analyzePersonality(humanSentences.join('\n'))
+      const profile = await analyzePersonality(humanSentences.join('\n'), room.genre)
       await supabase.from('personality_profiles').insert({ novel_id: novel.id, ...profile })
+      // 累積プロファイルを更新（失敗しても完結は続行）
+      if (userId) {
+        await upsertCumulativeProfile(userId, profile).catch(() => {})
+      }
     } catch { /* 分析失敗は無視して完結を続行 */ }
   }
 
@@ -201,7 +207,7 @@ export async function finishSession(roomId: string, sessionId: string) {
     .filter((s) => s.author_type === 'human')
     .map((s) => s.content)
 
-  const result = await completeNovel(roomId, sessionId, humanSentences)
+  const result = await completeNovel(roomId, sessionId, humanSentences, user.id)
 
   if (result.error) return { error: result.error }
   redirect(`/novels/${result.novelId}`)
